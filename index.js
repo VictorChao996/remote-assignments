@@ -43,7 +43,7 @@ app.post('/users', (req, res) => {
         const emailExist = checkEmailExist(email);
         if(emailExist){
             res.status(403).json({
-                'error':'Email already exists.'
+                "error": "Email already exists"
             });
         }
     }
