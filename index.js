@@ -91,6 +91,8 @@ app.listen(port, () => {
 
 
 function checkInputFormat(name, email, password) {
+    console.log("🚀 ~ file: index.js:94 ~ checkInputFormat ~ name, email, password:", name, email, password)
+    
     //若有一string為空，則回傳false
     if(validateName(name) && validateEmail(email) && validatePassword(password)){
         return true;
