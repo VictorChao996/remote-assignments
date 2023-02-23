@@ -1,25 +1,67 @@
 const express = require('express');
-const mysql = require('mysql2');
+const db = require('./query');
 const validator = require('./validate');
-const {validateName, validateEmail, validatePassword} = validator;
 require('dotenv').config();
+
+const {validateName, validateEmail, validatePassword} = validator;
 
 const app = express()
 const port = 3000;
-const connection = mysql.createConnection({
-    host: 'appworksprogram.c63rwssh5h5i.ap-northeast-1.rds.amazonaws.com',
-    user: process.env.PASSWORD,
-    password: process.env.PASSWORD,
-    datebase: 'assignment'
-});
 
-connection.query(
-    'SHOW DATABASES',
-    function (err,results) {
-        // console.log("🚀 ~ file: index.js:15 ~ err:", err)
-        // console.log("🚀 ~ file: index.js:14 ~ results:", results);
-    }
-);
+// connection.connect((err)=>{
+//     if(err){
+//         console.error(err);
+//         return;
+//     }
+//     console.log(`connection success.......`);
+//     connection.query(
+//         'SHOW DATABASES',
+//         function (err, results){
+//             console.log("🚀 ~ file: index.js:27 ~ results:", results);
+            
+//         }
+//     );
+//     connection.query(
+//         'USE assignment',
+//         function (err, results){
+//             console.log("🚀 ~ file: index.js:27 ~ results:", results);
+            
+//         }
+//     );
+//     connection.query(
+//         'SHOW TABLES',
+//         function (err, results){
+//             console.log("🚀 ~ file: index.js:27 ~ results:", results);
+            
+//         }
+//     );
+
+    // connection.query('INSERT INTO user (name, email, password) VALUES (?, ?, ?)',['Victor', '456@gmail.com', 'Abc123'], (err, results, fields)=>{
+    //     if(err){
+    //         console.error(err);
+    //     }
+    // });
+// })
+// db.showDatabases((err, results) => {
+//     console.log("🚀 ~ file: index.js:46 ~ db.showDatabases ~ results:", results)
+
+// });
+// db.useDatabase((err, results) => {
+//     console.log("🚀 ~ file: index.js:50 ~ db.useDatabase ~ results:", results);
+// });
+
+// db.showTables((err, results) => {
+//     console.log("🚀 ~ file: index.js:54 ~ db.showTables ~ results:", results);
+// });
+// db.showDatabases();
+db.useDatabase();
+// db.showTables();
+// const name = "aaa";
+const email = "abc12@gmail.com";
+// const password = "abcDDD112";
+// db.insertUser(name, email, password);
+
+const {userId, userName, userEmail} = db.getUserData(1);
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -127,6 +169,8 @@ function checkInputFormat(name, email, password) {
  * @returns {boolean} 
  */
 function checkEmailExist(email){
+    if(db.checkUserEmail(email))
+        return true;
     return false;
 }
 
@@ -139,6 +183,7 @@ function checkEmailExist(email){
  * @return {String} id
  */
 function registerUser(name, email, password){
+    db.insertUserData(name, email, password);
     const id = "1";
     return id;
 } 
