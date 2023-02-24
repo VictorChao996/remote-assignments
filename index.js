@@ -92,9 +92,11 @@ app.get('/users', async (req,res,err)=>{
     //* Request Body parts
     //若有結果則返回對應的JSON data，若user=null則回傳403 error
     if(user){
+        const {id,name,email} = user[0];
+        console.log("🚀 ~ file: index.js:96 ~ app.get ~ id,name,email:", id,name,email)
         res.status(200).json({
             "data":{
-                user,
+                "user": {id,name,email},
                 "date": requestDate
             }
         });
