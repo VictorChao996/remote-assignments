@@ -67,7 +67,13 @@ const validateDateFormat = function(dateString) {
   return dateFormat.test(dateString);
 }
 
-
+/**
+ * - 用於檢查User Sign Up API 的格式
+ * @param {String} name 
+ * @param {String} email 
+ * @param {String} password 
+ * @returns 
+ */
 const checkInputFormat = function(name, email, password){
   //若有一string為空，則回傳false
   if(validateName(name) && validateEmail(email) && validatePassword(password)){
