@@ -22,8 +22,10 @@ app.get('/healthcheck', (req, res) => {
     res.send('OK');
 });
 
-
-//TODO: User Login API
+/**
+ * * User Sign Up API
+ * * app.post('/users') 註冊使用者資料
+ */
 app.post('/users', async (req, res) => {
 
     //* Request Header parts
@@ -53,7 +55,7 @@ app.post('/users', async (req, res) => {
                 return res.send('something went wrong');
             return res.status(200).json({
                 "data":{
-                    "user": {id: id, email, password},
+                    "user": {id: id, name,email},
                     "date": requestDate
                 }
             });
@@ -69,7 +71,7 @@ app.post('/users', async (req, res) => {
 });
 
 /**
- * TODO: User Login API
+ * * User Login API
  * * app.get(/users): 根據query返回使用者JSON資料
  */
 app.get('/users', async (req,res,err)=>{

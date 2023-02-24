@@ -89,7 +89,7 @@ const showTables = async function(){
 }
 
 /** 
- * * 檢查user DB中是否存在該email(註: email 欄位為唯一)
+ * - 檢查user DB中是否存在該email(註: email 欄位為唯一)
  * @param {String} email 
  * @return {Boolean} isEmailExist
  */
@@ -107,7 +107,7 @@ const checkUserEmail = async function(email){
 }
 
 /**
- * * 根據傳入的user資料建立user，並返回UserId
+ * - 根據傳入的user資料建立user，並返回UserId
  * @param {String} name 
  * @param {String} email 
  * @param {String} password 
@@ -188,6 +188,10 @@ function useDatabaseQuery(databaseName){
         });
     });
 }
+/**
+ * - 執行SHOW TABLES 的 Query 指令
+ * @return {Promise}
+ */
 function showTablesQuery(){
     return new Promise((resolve, reject) =>{
         connection.query('SHOW TABLES', (err, results)=>{
@@ -201,6 +205,11 @@ function showTablesQuery(){
     });
 }
 
+/**
+ * - 執行查找email的 Query 指令
+ * @param {String} email 
+ * @returns 
+ */
 function getUserEmailQuery(email){
     return new Promise((resolve, reject) =>{
         connection.query('SELECT email FROM user WHERE email = ?',[email], (err, results)=>{
@@ -237,6 +246,13 @@ function getUserByIdQuery(id){
     });
 }
 
+/**
+ * - 執行新增userData的 Query 指令
+ * @param {String} name 
+ * @param {String} email 
+ * @param {String} password 
+ * @returns 
+ */
 function insertUserDataQuery(name, email, password){
     return new Promise((resolve, reject) => {
         connection.query('INSERT INTO user (name, email, password) VALUES (?, ?, ?)', [name, email, password], (err, results, fields)=>{
