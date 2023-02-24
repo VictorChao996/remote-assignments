@@ -3,65 +3,13 @@ const db = require('./query');
 const validator = require('./validate');
 require('dotenv').config();
 
-const {validateName, validateEmail, validatePassword} = validator;
+const {validateDateFormat, checkInputFormat} = validator;
 
 const app = express()
 const port = 3000;
 
-// connection.connect((err)=>{
-//     if(err){
-//         console.error(err);
-//         return;
-//     }
-//     console.log(`connection success.......`);
-//     connection.query(
-//         'SHOW DATABASES',
-//         function (err, results){
-//             console.log("🚀 ~ file: index.js:27 ~ results:", results);
-            
-//         }
-//     );
-//     connection.query(
-//         'USE assignment',
-//         function (err, results){
-//             console.log("🚀 ~ file: index.js:27 ~ results:", results);
-            
-//         }
-//     );
-//     connection.query(
-//         'SHOW TABLES',
-//         function (err, results){
-//             console.log("🚀 ~ file: index.js:27 ~ results:", results);
-            
-//         }
-//     );
-
-    // connection.query('INSERT INTO user (name, email, password) VALUES (?, ?, ?)',['Victor', '456@gmail.com', 'Abc123'], (err, results, fields)=>{
-    //     if(err){
-    //         console.error(err);
-    //     }
-    // });
-// })
-// db.showDatabases((err, results) => {
-//     console.log("🚀 ~ file: index.js:46 ~ db.showDatabases ~ results:", results)
-
-// });
-// db.useDatabase((err, results) => {
-//     console.log("🚀 ~ file: index.js:50 ~ db.useDatabase ~ results:", results);
-// });
-
-// db.showTables((err, results) => {
-//     console.log("🚀 ~ file: index.js:54 ~ db.showTables ~ results:", results);
-// });
-// db.showDatabases();
-db.useDatabase();
-// db.showTables();
-// const name = "aaa";
-const email = "abc12@gmail.com";
-// const password = "abcDDD112";
-// db.insertUser(name, email, password);
-
-const {userId, userName, userEmail} = db.getUserData(1);
+db.showDatabases();
+db.useDatabase('assignment');
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -75,28 +23,34 @@ app.get('/healthcheck', (req, res) => {
 });
 
 
-
 //TODO: User Login API
-app.post('/users', (req, res) => {
+app.post('/users', async (req, res) => {
 
+    //* Request Header parts
+    const requestDate  = req.get('request-date');
     //若header有誤直接返回status code 400 to client
-    if(res.headers['content-type'] !== 'application/json'){
+    if((req.headers['content-type'] !== 'application/json') || (validateDateFormat(requestDate) == false)){
         return res.status(400).json({
             "error": "Client Error Requested"
         });
     }
 
-    const requestDate  = req.get('request-date');
+    //* Request Body parts
     const {name, email, password} = req.body;
     const check = checkInputFormat(name, email, password);
     if(check){
-        const emailExist = checkEmailExist(email);
+        // const emailExist = checkEmailExist(email);
+        const emailExist = await db.checkUserEmail(email);
+        console.log("🚀 ~ file: index.js:52 ~ app.post ~ emailExist:", emailExist);
         if(emailExist){
             return res.status(403).json({
                 "error": "Email already exists"
             });
         }else{
-            const id = registerUser(name, email, password);
+            const id = await db.registerUser(name, email, password);
+            console.log("🚀 ~ file: index.js:59 ~ app.post ~ id:", id)
+            if(id < 0)
+                return res.send('something went wrong');
             return res.status(200).json({
                 "data":{
                     "user": {id: id, email, password},
@@ -118,18 +72,23 @@ app.post('/users', (req, res) => {
  * TODO: User Login API
  * * app.get(/users): 根據query返回使用者JSON資料
  */
-app.get('/users', (req,res,err)=>{
+app.get('/users', async (req,res,err)=>{
     
-    //if the headers content type is wrong, send the 400 error to client.
-    if(req.headers['content-type'] !== 'application/json'){
+    //* Request Header parts
+    const requestDate  = req.get('request-date');
+    //若header有誤直接返回status code 400 to client
+    if((req.headers['content-type'] !== 'application/json') || (validateDateFormat(requestDate) == false)){
         return res.status(400).json({
-            'error': 'Client Error Requested'
-        })
+            "error": "Client Error Requested"
+        });
     }
     const userId = req.query.id;
-    const requestDate  = req.get('request-date');
-    const user = getUserDataFromDatabase(userId);
+    // const user = await getUserDataFromDatabase(userId);
+    const user = await db.getUserData(userId);
+    console.log("🚀 ~ file: index.js:88 ~ app.get ~ user:", user)
 
+    //* Request Body parts
+    //若有結果則返回對應的JSON data，若user=null則回傳403 error
     if(user){
         res.status(200).json({
             "data":{
@@ -143,7 +102,6 @@ app.get('/users', (req,res,err)=>{
         });
     }
 
-    res.send(`User ${id}`);
 });
 
 
@@ -152,43 +110,3 @@ app.listen(port, () => {
 });
 
 
-function checkInputFormat(name, email, password) {
-    console.log("🚀 ~ file: index.js:94 ~ checkInputFormat ~ name, email, password:", name, email, password)
-    
-    //若有一string為空，則回傳false
-    if(validateName(name) && validateEmail(email) && validatePassword(password)){
-        return true;
-    }
-    return false;
-}
-
-/**
- * * 根據傳入的email檢查是否已經存在DB中
- * TODO: 檢查email是否已經註冊(已存在DB中)
- * @param {String} email 
- * @returns {boolean} 
- */
-function checkEmailExist(email){
-    if(db.checkUserEmail(email))
-        return true;
-    return false;
-}
-
-/**
- * TODO: 註冊新User資料到DB中
- * * registerUser(): 根據創建的結果返回userID
- * @param {String} name 
- * @param {String} email 
- * @param {String} password 
- * @return {String} id
- */
-function registerUser(name, email, password){
-    db.insertUserData(name, email, password);
-    const id = "1";
-    return id;
-} 
-
-//TODO: 檢查DB中的user資料並返回，若無則回傳空{}
-function getUserDataFromDatabase(userId){
-    return {};
-}
