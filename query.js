@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const connection = mysql.createConnection({
     host: 'appworksprogram.c63rwssh5h5i.ap-northeast-1.rds.amazonaws.com',
-    user: process.env.USER,
+    user: process.env.MYSQL_USER,
     password: process.env.PASSWORD,
     datebase: 'assignment'
 
