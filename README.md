@@ -46,6 +46,7 @@ This is an repo for remote assignments.
 1. aws root account or user 
 2. EC2 instance and RDS instance
 3. nvm(Node Version Manager) installed
+4. [pm2](https://www.npmjs.com/package/pm2) package installed
 
 > **info** :see the following installation step
 
@@ -107,11 +108,11 @@ PASSWORD = "password";
 ```
 > **Warning:**: This step could not be skipped.
    
-4. start the express app with
+4. start the express app in the background
 ```shell
-node index.js
+pm2 start index.js
 ```
-
+> **info**: This step can run node.js app in background, see more details here: [pm2](https://www.npmjs.com/package/pm2)
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
