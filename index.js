@@ -6,13 +6,20 @@ require('dotenv').config();
 const {validateDateFormat, checkInputFormat} = validator;
 
 const app = express()
-const port = 3000;
+const port = 4000; //using port 4000 to avoid frontend development default server port 3000
 
 db.showDatabases();
 db.useDatabase('assignment');
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+
+//* For the browser CORS error
+app.use((req,res,next)=>{
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Request-Date');
+    next();
+});
 // app.use(express.json());
 app.get('/', (req, res) => {
     res.send('<h1>This is root page.</h1>');
@@ -52,7 +59,7 @@ app.post('/users', async (req, res) => {
             const id = await db.registerUser(name, email, password);
             console.log("🚀 ~ file: index.js:59 ~ app.post ~ id:", id)
             if(id < 0)
-                return res.send('something went wrong');
+                return res.status(500).send({'error':'something went wrong in MySQL database'});
             return res.status(200).json({
                 "data":{
                     "user": {id: id, name,email},
@@ -85,9 +92,11 @@ app.get('/users', async (req,res,err)=>{
         });
     }
     const userId = req.query.id;
-    // const user = await getUserDataFromDatabase(userId);
-    const user = await db.getUserData(userId);
-    console.log("🚀 ~ file: index.js:88 ~ app.get ~ user:", user)
+    var user = null;
+    if(userId > 0){
+        user = await db.getUserData(userId);
+        console.log("🚀 ~ file: index.js:97 ~ app.get ~ user:", user)
+    }
 
     //* Request Body parts
     //若有結果則返回對應的JSON data，若user=null則回傳403 error
