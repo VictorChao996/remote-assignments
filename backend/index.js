@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("./query");
 const validator = require("./validate");
+const cors = require("cors");
 require("dotenv").config();
 
 const { validateDateFormat, checkInputFormat } = validator;
@@ -11,17 +12,25 @@ const port = 4000; //using port 4000 to avoid frontend development default serve
 db.showDatabases();
 db.useDatabase("assignment");
 
+app.use(
+    cores({
+        origin: "*",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type", "Request-Date"],
+        credentials: true,
+    })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //* For the browser CORS error
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Request-Date");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    next();
-});
+// app.use((req, res, next) => {
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Request-Date");
+//     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+//     res.setHeader("Access-Control-Allow-Credentials", "true");
+//     next();
+// });
 // app.use(express.json());
 app.get("/", (req, res) => {
     res.send("<h1>This is root page.</h1>");
@@ -65,10 +74,11 @@ app.post("/users", async (req, res) => {
         } else {
             const id = await db.registerUser(name, email, password);
             console.log("🚀 ~ file: index.js:59 ~ app.post ~ id:", id);
-            if (id < 0)
+            if (id < 0) {
                 return res
                     .status(500)
                     .send({ error: "something went wrong in MySQL database" });
+            }
             return res.status(200).json({
                 data: {
                     user: { id: id, name, email },
