@@ -13,7 +13,7 @@ db.showDatabases();
 db.useDatabase("assignment");
 
 app.use(
-    cores({
+    cors({
         origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Request-Date"],

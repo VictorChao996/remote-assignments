@@ -18,9 +18,23 @@
         <li><a href="#prerequisites">Prerequisites</a></li>
       </ul>
     </li>
-    <li><a href="#installation">Installation</a></li>
+    <li>
+      <a href="#installation">Installation</a>
+      <ul>
+        <li><a href="#setup-backend-service">Setup backend Service</a></li>
+        <li><a href="#setup-frontend-service">Setup frontend Service</a></li>
+        <li><a href="#setup-reverse-proxy">Setup Reverse Proxy</a></li>
+      </ul>  
+    </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#notices">Notices</a></li>
+    <li>
+      <a href="#notes">Notes</a>
+      <ul>
+        <li><a href="#connect-to-ec2-instance">Connect to EC2 instance</a></li>
+        <li><a href="#connect-to-rds-instance">Connect to RDS instance</a></li>
+      </ul>
+    </li>
+    <li><a href="#documents-or-links">Documents or Links</a></li>
 
   </ol>
 </details>
@@ -35,6 +49,7 @@ This is an repo for remote assignments.
 
 
 ### Built With
+- React.js
 - Express.js
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -47,6 +62,7 @@ This is an repo for remote assignments.
 2. EC2 instance and RDS instance
 3. nvm(Node Version Manager) installed
 4. [pm2](https://www.npmjs.com/package/pm2) package installed
+5. Nginx installed or Enabled
 
 > **info** :see the following installation step
 
@@ -91,16 +107,33 @@ npm --version
 node -v
 ```
 
+#### Enable Nginx on aws EC2 Amazon Linux 2 instance
+Nginx is the in the amazon-linux-extras package, type command to see if the nginx is enabled or not.
+1. Check amazon-linux-extras package
+```shell
+which amazon-linux-extras
+amazon-linux-extras
+```
+2. install if the Nginx is not enabled
+```shell
+sudo amazon-linux-extras enable nginx1
+```
+
+> **info**: See the below setup steps for reveres proxy.
+
+
 ## Installation
-### Setup an Express App
+
 1. clone this repo
 ```shell
   git clone https://github.com/VictorChao996/remote-assignments.git
 ```
 2. Install the nvm(Linux)
    - See the setup steps above.👍
+### Setup backend (Express App)
 
-3. set up the .env file for DB connect
+
+1. Set environment variable for DB connect
    - make an .env file with the following content,replace the content with your own username and password
 ```shell
 MYSQL_USER = "user";
@@ -108,19 +141,87 @@ PASSWORD = "password";
 ```
 > **Warning:**: This step could not be skipped.
    
-4. start the express app in the background
+2. start the express app in the background
 ```shell
-pm2 start index.js
+pm2 start index.js -n backend
 ```
 > **info**: This step can run node.js app in background, see more details here: [pm2](https://www.npmjs.com/package/pm2)
 
+### Setup Frontend (React app)
+1. Install package: `npm install`
+2. Set environment variable for Fetch API
+    - Add the .env file in the frontend root folder
+```txt
+REACT_APP_BACKEND_API_URL = "api/"
+```
+> **Warning**: This Step should not be skipped.
+3. Build the project: `npm run build`
+4. Set up Nginx configuration file.
+
+### Setup Reverse Proxy (Nginx)
+1. Move to the Nginx folder
+```shell
+cd /etc/nginx
+```
+2. Make a new configuration file
+```
+sudo mkdir sites-available
+cd sites-available
+nano my-react-app.conf
+```
+3. Create Proxy Rule in configuration file
+- frontend: /
+- backend: /api/
+```txt
+server {
+        listen 80;
+        server_name [public serve name];
+
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization,Content-Type";
+
+        location / {
+                root [your/filepath/to/react/build];
+                index index.html;
+                try_files $uri $uri/ /index.html;
+        }
+
+        location  /api/ {
+                resolver 8.8.8.8;
+                rewrite /api(/.*) $1 break;
+                proxy_pass [your/backend/server/uri];
+        }
+}
+```
+4. Link the my-react-app.conf to the nginx folder (Optional)
+```shell
+sudo ln -s /etc/nginx/sites-available/my-react-app/conf /etc/nginx/
+```
+5. include the my-react-app.conf in the nginx.conf file
+- add following content in the http block.
+```shell
+include /etc/nginx/my-react-app.conf
+```
+6. Test and Start the Nginx Server
+```shell
+sudo nginx -t
+sudo systemctl start nginx
+```
+> **info**: see the error log in the directory `/var/log/nginx/error.log`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+- visit the frontend page: http://54.64.217.57
+- check the backend service: http://54.64.217.57/api/healthcheck
 
-### Connect EC2
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Notes
+
+### Connect to EC2 instance
 
 #### Methods 1
 - connect by "EC2 Instance Connect" button
@@ -131,7 +232,7 @@ pm2 start index.js
 ```
 > after connect you will see the EC2 graph in the terminal.
 
-### Connect to RDS
+### Connect to RDS instance
 #### methods 1: through EC2
 After connect to EC2 simply type
 ```shell
@@ -144,14 +245,25 @@ to test the connection.
 telnet [RDS instance endpoint] 3306 
 ```
 
+## Documents or Links
+### AWS services
+- [Tutorial: Get started with Amazon EC2 Linux instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)
+- [Elastic IP addresses](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
+- [Amazon EC2 security groups for Linux instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html)
+- [Security group rules for different use cases](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html)
+- [Creating and connecting to a MySQL DB instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_GettingStarted.CreatingConnecting.MySQL.html)
+- [Amazon RDS 故障診斷](https://docs.aws.amazon.com/zh_tw/AmazonRDS/latest/UserGuide/CHAP_Troubleshooting.html#CHAP_Troubleshooting.Connecting)
+
+### npm package
+- [Express](https://expressjs.com/)
+- [mysql2](https://www.npmjs.com/package/mysql2)
+- [pm2](https://pm2.keymetrics.io/)
+### Nginx(reverse proxy)
+- [Install NGINX Plus](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/)
+- [Configuring NGINX and NGINX Plus as a Web Server](https://docs.nginx.com/nginx/admin-guide/web-server/web-server/)
+
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## Notices
-> **Warning**
-
-
-> **Note**
-> - RDS 很調皮，如果PC連不上可以參考[Amazon RDS 故障診斷](https://docs.aws.amazon.com/zh_tw/AmazonRDS/latest/UserGuide/CHAP_Troubleshooting.html#CHAP_Troubleshooting.Connecting)
 
 
 
