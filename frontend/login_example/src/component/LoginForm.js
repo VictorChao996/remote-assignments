@@ -86,8 +86,9 @@ function APItest_GET() {
  * @returns res.json()
  */
 async function APItest_POST(userData) {
+    const apiURL = process.env.REACT_APP_BACKEND_API_URL;
     console.log("POST method test");
-    const data = await fetch("http://localhost:4000/users/", {
+    const data = await fetch(`${apiURL}users/`, {
         method: "POST",
         headers: {
             "content-type": "application/json",
