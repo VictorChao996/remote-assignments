@@ -6,12 +6,6 @@ import React, { useState } from "react";
  * @returns
  */
 const LoginForm = function (props) {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        password: "",
-    });
-
     /**
      * * 當表單提交時執行
      * * 呼叫props傳入的callback function: onLoginFormSubmit()
