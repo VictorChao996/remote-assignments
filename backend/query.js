@@ -1,7 +1,7 @@
 const mysql = require("mysql2");
 require("dotenv").config();
 
-// TODO: 改成connection pool
+//!: 目前沒有處理連線斷開後的動作，預計將此file中的邏輯改成使用createPool來處理
 const connection = mysql.createConnection({
     host: "appworksprogram.c63rwssh5h5i.ap-northeast-1.rds.amazonaws.com",
     user: process.env.MYSQL_USER,

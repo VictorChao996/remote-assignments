@@ -1,6 +1,6 @@
 const express = require("express");
-const db = require("./query");
-const db2 = require("./newQuery");
+// const db = require("./query");
+const db = require("./newQuery");
 const validator = require("./validate");
 const cors = require("cors");
 require("dotenv").config();
